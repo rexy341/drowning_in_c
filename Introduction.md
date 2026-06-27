@@ -1,32 +1,10 @@
-<p align="center">
- <img src="_images-unix/unix-logo-1.png" alt="Unix" title="Unix" width="200" />
-</p>
-
-Unix tutorial for Beginners
+Unix Introduction
 =====================
-
-Introduction to Unix Operating System
-=====================
-
-Beginners guide to Unix
-=====================
-
-<p align="center">
- <img src="_images-unix/unix-logo-2.png" alt="Unix" title="Unix" width="200" />
-</p>
 
 Description
 ---------------------
+Basic concepts of the Unix Operating System:
 
-About the Course/Tutorial
----------------------
-
-What will learn and cover
----------------------
-
-Welcome to the new tutorial on Unix, a beginner's guide to Unix. Let us learn/understand the essentials and basic concepts of the Unix Operating System with hands-on examples.
-
-In this introductory Unix module will learn:
 - What is the Operating System
 - Unix Operating System
 - Features of Unix
@@ -35,10 +13,8 @@ In this introductory Unix module will learn:
 - Unix File System
 - Unix Commands
 
-Topics (separate with spaces)
+Topics
 ---------------------
-
-Add topics to categorize your repository and make it more discoverable:
 
 - unix
 - operating-system
@@ -48,38 +24,10 @@ Add topics to categorize your repository and make it more discoverable:
 - unix-features
 - unix-architecture
 
-Welcome
----------------------
-
-Hi All, I'm **`Dinanath Jayaswal, Senior UI/Web Developer and Adobe Certified Expert Professional`**, I wanna welcome you to the `Introduction to Unix Operating System/Unix tutorial for Beginners`.
-
-Who is this for? Audience
----------------------
-
-This Course/Tutorial is ideal for: 
-- Freshers
-- Intermediates
-- Beginner Programmers
-- Any Developer/Designer
-
-Course/Tutorial achievement
----------------------
-Course/Tutorial Goal
----------------------
-
-<!-- After completing/attending/finishing this Course/Tutorial, participants should be able to: -->
-By the end of this series, you will be able to understand:
-- What is the Operating System
-- Unix basics and advanced concepts
-- Unix Architecture
-- Unix Command usage
-
-Prerequisites for current course / What you need to know
----------------------
 
 - Computer Basics
 
-Topics included/covered
+Index
 =====================
 1. [Introduction to Operating System](#1-introduction-to-operating-system)
     - 1.1. [What is OS (Operating System)?](#11-what-is-the-operating-system)
@@ -125,18 +73,10 @@ Topics included/covered
 1 Introduction to Operating System
 =====================
 
-In this section, you will be able to understand the fundamentals of Operating Systems, its functions and various Operating Systems used in the world.
 
 1.1. What is the Operating System?
 ---------------------
-1.1. What is OS (Operating System)?
----------------------
 
-<p>
- <figure>
-  <img src="_images-unix/1.1-operating-system-1.jpeg" alt="Operating System" title="Operating System" border="2" align="right" width="200" hspace="0" vspace="0" />
- </figure>
-</p>
 
 - OS (Operating System) is a set of programs/package acts as an intermediary/interface between computer software, end-user and computer hardware
 - An operating system (OS) is a collection of `system software` that manages `computer hardware, software resources`, and provides common services for computer programs
@@ -144,17 +84,11 @@ In this section, you will be able to understand the fundamentals of Operating Sy
 - Core/brain/heart of machine's/device's software and provide an environment to execute programs
 - OS (Operating System) controls the allocation of resources and services such as (Memory, Processor, Devices, Information, controlling attached devices/peripherals)
 
-<p>
-  <figure>
-    &nbsp;&nbsp;&nbsp; <img src="_images-unix/1.1.operating-system-2.png" alt="Operating System" title="Operating System" width="500" border="2" />
-    <figcaption>&nbsp;&nbsp;&nbsp; Image 1.1 - Operating System </figcaption>
-  </figure>
-</p>
 
 1.2. Functions of Operating System
 ---------------------
 
-**Here is the list of important functions performed by an Operating System**:
+**List of important functions performed by an Operating System**:
 
 - Co-ordination between Software and Hardware
 - Memory Management
@@ -167,17 +101,10 @@ In this section, you will be able to understand the fundamentals of Operating Sy
 - Task/Internal Job scheduling
 - File Management
 
-<p>
-  <figure>
-    &nbsp;&nbsp;&nbsp; <img src="_images-unix/1.2-operating-system-functions.png" alt="Operating System - Functions" title="Operating System - Functions" width="400" border="2" />
-    <figcaption>&nbsp;&nbsp;&nbsp; Image 1.2 - Operating System - Functions </figcaption>
-  </figure>
-</p>
-
 1.3. Popular Operating System
 ---------------------
 
-**Here are some popular and widely used Operating Systems (OS) - Some popular Operating Systems include**:
+**Popular and widely used Operating Systems (OS) - Some popular Operating Systems include**:
 
 - Unix
 - DOS
@@ -187,10 +114,8 @@ In this section, you will be able to understand the fundamentals of Operating Sy
 - Android (Mobile OS)
 - iOS (Apple Mobile OS - iPhone, iPad, iPod)
 
-2 Introduction to Unix
+2 Unix OS
 =====================
- 
-In this section, you will be able to understand the basic concepts-history of Unix operating systems, features of Unix, along with its comparison, similarities and difference between other Operating Systems in the market like MS-DOS and MS-Windows.
 
 2.1. History of Unix Operating System
 ---------------------
@@ -251,11 +176,7 @@ In this section, you will be able to understand the basic concepts-history of Un
 - **Unix Shell**
   - Unix Shell a command interpreter that helps to interact with Unix OS ie the Kernel. (Shell takes input/command from a user and executes programs-run command)
   
-2.3 Compare different Operating System
----------------------
-2.3. Compare different Operating System (MS-DOS, MS-Windows, Unix)
----------------------
-2.3. The similarity between different Operating System (MS-DOS, MS-Windows, Unix)
+2.3 Different Operating System
 ---------------------
 
 **Similarity between Unix and MS-DOS**:
@@ -308,12 +229,7 @@ In this section, you will be able to understand the basic concepts-history of Un
 3 Unix Architecture
 =====================
 
-In this section, will get more information on different Unix flavors/variations/variety/version, Unix Architecture with Kernel and Shell.
-
 3.1. Different flavors of Unix
----------------------
-
-3.1. Different variations/varieties of Unix
 ---------------------
 
 There are many ie. different flavors/variations/variety/versions of UNIX available in the market, although they share common similarities. The most popular varieties of UNIX are Sun Solaris, GNU/Linux, and macOS X:
@@ -345,12 +261,6 @@ There are many ie. different flavors/variations/variety/versions of UNIX availab
 
 An operating system is a collection of software, each designed for a specific function. Here is a basic block diagram of a Unix system Architecture-Structure:
 
-<p>
-  <figure>
-    &nbsp;&nbsp;&nbsp; <img src="_images-unix/3.2-unix-architecture.jpg" alt="Unix Architecture" title="Unix Architecture" width="400" border="2" />
-    <figcaption>&nbsp;&nbsp;&nbsp; Image 3.2 - Unix Architecture | Unix system Architecture-Structure </figcaption>
-  </figure>
-</p>
 
 > #### Hardware (Physical Devices)
 - The Hardware layer of the Unix Operating System controls the use of physical system resources, such as memory manager, process manager, disk drivers, devices, and so on
