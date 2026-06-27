@@ -66,9 +66,7 @@ Index
 6. [Unix vs Linux](#6-unix-vs-linux) | [Difference between Unix and Linux](#6-difference-between-unix-and-linux)
     - 6.1. [What is Linux?](#61-what-is-Linux)
     - 6.2. [Unix vs Linux](#62-unix-vs-linux)
- 7. [Introduction to Ubuntu](#7-introduction-to-Ubuntu) | [Getting started with Ubuntu](#7-getting-started-with-Ubuntu)
-    - 7.1. [What is Ubuntu?](#71-what-is-ubuntu)
-    - 7.2. [Features of Ubuntu](#72-features-of-ubuntu)
+
    
 1 Introduction to Operating System
 =====================
@@ -113,6 +111,67 @@ Index
 - Linux (Unix clone)
 - Android (Mobile OS)
 - iOS (Apple Mobile OS - iPhone, iPad, iPod)
+
+1.4. Boot Process Of Operating System
+---------------------
+
+**The standard boot process follows six critical, sequential phases:**
+
+1. *Power On and Initialization*
+
+- Power Supply: Pressing the power button sends electricity from the Power Supply Unit (PSU) to the motherboard.
+- CPU Activation: The central processing unit starts up and seeks instructions. Because the RAM is empty, the CPU executes a hardcoded instruction that points directly to the system firmware.
+
+2. *BIOS / UEFI Firmware Execution*
+
+- Firmware Load: The computer runs its low-level built-in software, either traditional BIOS (Basic Input/Output System) or modern UEFI (Unified Extensible Firmware Interface).
+- POST (Power-On Self-Test): The firmware runs a diagnostic check to verify that essential hardware components—like the CPU, RAM, storage drives, and keyboard—are functional. If it detects failures, it halts and reports errors via screen alerts or audio beep codes.
+
+3. *Finding the Bootloader*
+
+- Boot Order: Once hardware checks pass, the firmware scans available storage devices (SSD, HDD, or USB) based on a preconfigured priority list.
+- Sector Search:
+- On Legacy BIOS systems, it targets the MBR (Master Boot Record) located in the first sector of the boot drive.
+- On UEFI systems, it targets the GPT (GUID Partition Table) and identifies the dedicated EFI System Partition.
+- Execution: The firmware finds a tiny program called the bootstrap loader and copies it into the RAM.
+
+4. *Loading the Bootloader*
+
+- Intermediate Step: The small bootstrap program initializes and fetches a more advanced, primary bootloader (such as GRUB for Linux or Windows Boot Manager for Windows).
+- OS Selection: If multiple operating systems are installed on different disk partitions (dual booting), the bootloader pauses to display a menu allowing you to choose your desired OS.
+
+5. *Kernel and Driver Initialization*
+
+- Kernel Load: The bootloader locates the core component of the operating system—the kernel—and transfers it to the RAM. Control of the machine is officially handed over to the OS.
+- Hardware Drivers: The kernel takes control of the CPU and memory. It then mounts necessary filesystems and loads essential device drivers so the OS can cleanly communicate with system hardware.
+
+6. *Starting Core Services and User Authentication*
+
+- Background Daemons: The kernel initiates the root system process (like systemd in Linux) to launch vital background services. These include network connections, security modules, and print managers.
+- User Login: Finally, the system initiates the graphical interface, presenting the desktop environment or a user authentication screen. Once logged in, the system is fully prepared for use.
+
+------------------------------
+**Note 1.4.1: Key Variations: Cold Boot vs. Warm Boot**
+
+- Cold Booting (Hard Boot): Occurs when you power on a device from a completely turned-off state. The machine performs the full routine, including mandatory POST diagnostics and total hardware initialization.
+- Warm Booting (Soft Boot): Occurs when you trigger a software restart without cutting the electrical power supply. It speeds up the loading process by bypassing structural hardware checks and some POST sequences.
+
+**Note 1.4.2: How does POST produce screen alerts or audio alerts if the OS has not been loaded yet?**
+
+The Power-On Self-Test (POST) can communicate without an operating system because it relies entirely on firmware and low-level hardware standards that are hardcoded into your computer's components.Before the OS ever loads, the motherboard's BIOS/UEFI acts as a temporary, mini-operating system.
+
+1. *How POST Accesses Sound (Beep Codes)*
+
+- Direct Hardware Control: The motherboard features a tiny, dedicated physical speaker (the piezo speaker) or a buzzer wired directly to the chipset.
+- No Drivers Needed: The BIOS/UEFI contains primitive assembly language instructions to send electrical pulses directly to this buzzer at specific frequencies.
+- The Result: If the RAM or video card fails to initialize, the firmware triggers specific patterns of short and long electrical pulses (e.g., one long and two short beeps) to tell you exactly what hardware failed.
+
+2. *How POST Accesses the Screen (Display)*
+
+- VGA Legacy Standards: Long before modern graphics drivers load, all video cards (Nvidia, AMD, or Intel integrated graphics) are hardcoded to support an ancient, universal standard called VGA (Video Graphics Array) mode.
+- Video BIOS (VBIOS): The graphics card has its own tiny onboard firmware chip. During the first split-second of booting, the main motherboard firmware locates and executes this Video BIOS.
+- Basic Text Output: The VBIOS initializes the graphics processor just enough to accept basic, unaccelerated text and simple graphics. It bypasses complex display pipelines and pipes basic pixels straight to your monitor via HDMI, DisplayPort, or VGA.
+
 
 2 Unix OS
 =====================
@@ -194,8 +253,6 @@ Index
 - Built-in networking with `TCP/IP` as the standard protocol
 
 2.4. Difference between different Operating System
----------------------
-2.4. Difference between different Operating System (Unix, MS-DOS, MS-Windows)
 ---------------------
 
 **Difference between Unix and MS-DOS**:
@@ -314,8 +371,75 @@ The UNIX operating system is made up of three parts named as `the Kernel, the Sh
 - TelShell (wish)
 - Bourne Again Shell (bash)
 
-### 3.2.3. Programs 
-### 3.2.3. Programs / User-Application Program
+### 3.2.3. Kernel - Shell Layered Architecture
+
+**Technical Notes: Terminal Input Subsystem & Command Execution Architecture**
+
+In a UNIX-like architecture (including Cygwin), command-line input and execution are decoupled into two distinct kernel-level operations: **Character Echoing** and **Line Buffering**. This is managed via the Kernel's **TTY (Teletype) Subsystem** operating in **Canonical (Line-Disciplined) Mode**.
+
+---
+
+*Phase 1: Asynchronous Character Echoing (Per-Keystroke Loop)*
+
+When a user interacts with the keyboard, the system relies on a low-level asynchronous feedback loop to display text before execution.
+
+```text
+[Keyboard Matrix] ──(IRQ)──> [CPU / ISR] ──> [TTY Buffer] ──> [Video Framebuffer]
+```
+
+- Technical Workflow:
+    - **Hardware Interrupt Generation:** Pressing a key (e.g., `a`) pulls down a voltage line on the motherboard, triggering a hardware -     Interrupt Request (IRQ) on the CPU.
+    - **Interrupt Service Routine (ISR):** The CPU suspends user-space execution and jumps to the kernel's keyboard driver ISR. The driver reads the raw hardware scancode from the I/O register.
+    - **Scancode Translation:** The kernel translates the hardware scancode into its corresponding ASCII/UTF-8 character code (e.g., `0x61` for `a`).
+    - **TTY Line Discipline Processing:** The character is passed into the Kernel's TTY Subsystem Because the terminal is in Canonical Mode the kernel holds the character inside a temporary kernel ring-buffer (the TTY input queue).
+    - **Character Echoing:** If the `ECHO` flag is enabled in the terminal configuration (`termios`), the TTY driver immediately writes the character code back out to the Standard Output (stdout) buffer.
+    - **Video Rendering:** The kernel routes this output to the active display/graphics driver, which modifies the pixel matrix in the video Frame Buffer rendering the character visually on the monitor.
+
+---
+
+*Phase 2: Synchronous Command Execution (Line Buffering & Handshake)*
+
+The terminal shell remains completely decoupled from individual keystrokes until a termination sequence is reached.
+
+```text
+[User Hits Enter] 
+       │
+       ▼
+ [Kernel Buffer Closes] ---> Locks the raw character array inside TTY queue
+       │
+       ▼
+ [Shell Wakes Up]       ---> unblocks read() system call; copies string to user space
+       │
+       ▼
+ [Shell Parses Text]    ---> Tokenizes string into argv[] array (Command vs Arguments)
+       │
+       ▼
+ [System Call Made]     ---> Executes fork() and execve() to load binary into memory
+```
+
+- Technical Workflow:
+    - **Delimiter Detection:** The process shifts when the user presses `Enter`. The keyboard sends the `\n` (Line Feed / Newline, `0x0A`) control character.
+    - **Buffer Flushing & Context Switch:** The TTY line discipline detects the newline delimiter, closes the current line buffer packet, and changes the state of the blocked shell process from Waiting (Sleeping to Runnable
+    - **The `read()` System Call Handshake:** The Shell (e.g., Bash) had previously issued a blocking `read()` system call on its Standard Input File Descriptor (`fd 0`). The kernel now satisfies this call, copying the complete character string from the Kernel Space TTY buffer into the User Space memory allocation of the Shell.
+    - **Command Tokenization (Parsing):** The shell performs lexical analysis on the string. It splits the text on whitespace delimiters into an argument vector array (`argv[]`):
+           * `argv[0]` = `"awk"` (The target executable binary)
+           * `argv[1]` = `"{print \$0}"` (The AWK execution script argument)
+           * `argv[2]` = `"test.txt"` (The target file parameter)
+    - **Process Creation & Execution (Fork-Exec Pattern):**
+           * `fork()`: The shell issues a `fork()` system call to clone itself, creating a child process with a new unique Process ID (PID).
+           * `execve()`: The child process invokes the `execve()` system call, passing `argv[]`. The kernel wipes the child's memory space, searches the system `PATH` env variables for the `awk` binary machine instructions on disk, copies those bytes into RAM, and points the CPU program counter to the `main()` entry function of the new program.
+
+---
+
+**Note 3.2.3.1: Architectural Design Rationale**
+
+*Why the Kernel Decouples Line input*
+
+- **Canonical Editing Support (Line Discipline):** By storing text inside a kernel-managed buffer before handing it over to the user application, the OS natively supports input correction. When a user presses Backspace (`0x7F` or `0x08`), the TTY subsystem catches it, deletes the preceding character from the kernel input queue, and moves the screen cursor back. 
+- **Efficiency:** If the system did not use line buffering, every single character typed would force the shell to execute evaluations instantly. Line buffering ensures user space applications only wake up and utilize CPU clock cycles when a fully complete command packet is ready for computational processing.
+
+
+### 3.2.4. Programs 
 
 - Utility programs and applications are given by the user are handled in this layer
 - The commands are themselves called as programs in Unix
@@ -769,34 +893,3 @@ In this section/module will find head to head differences and similarities betwe
 | **GUI Graphical User Interface**: <br/>  Unix initially was a Command based OS, but now it also comes with GUI knows as `Common Desktop Environment` and `Gnome`  | Linx provides two GUIs like `KDE and Gnome, But have many such as LXDE, Xfce, Unity, Mate, TWM` etc.  |
 | **License and Pricing**: <br/> Different flavors of Unix have different cost/pricing structures as per the vendors  | <br/> Linux is freely distributed and downloaded through varieties of Magazines, Books and websites, etc. There are some paid versions also but pretty cheaper than windows OS  |
 |                                    | |
-
-7 Introduction to Ubuntu
-=====================
-7 Getting started with Ubuntu
-=====================
-
-<p align="center">
- <img src="_images-unix/ubuntu-logo-1.png" alt="Ubuntu" title="Ubuntu" width="200" />
-</p>
-
-7.1. What is ubuntu?
----------------------
-
-- `Ubuntu` is one of the popular and widely used variant/variety of Unix 
-- `Ubuntu Linux` is one of the flavors of the Linux Operating System
-- `Ubuntu` is a free Operating System which can run on PC or Laptop instead of Windows or OSX
-- It is pretty safe, hugely powerful fun and open-source Operating System
-- The `Ubuntu` is an ancient Zulu and Xhosa word which means `Humanity to others`
-- The word `Ubuntu` has its origin in the `Bantu` language of `South Africa`
-
-7.2. Features of Ubuntu
----------------------
-
-- It is free and open source
-- It is easy to install and use
-- It looks beautiful and stylish
-- It is faster on modern computers with high-end configuration (as it requires less amount of resources)
-- It is no major viruses, so it is pretty safe ie. secure
-- Ubuntu is updated every six months with extra features and utilities
-- It easily integrates with the existing network
-- Ubuntu is the most popular Linux distribution
