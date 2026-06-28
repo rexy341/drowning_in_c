@@ -26,46 +26,131 @@ Unix · Linux · Windows · macOS · Android · iOS · DOS
 
 ---
 
-## 2. What is the Kernel?
+The UNIX operating system is made up of three parts named as `the Kernel, the Shell and the Programs`:
+1. Kernel
+2. Shell
+3. Programs
 
-> The kernel is the **only program that runs with full hardware access**. Everything else — your browser, your shell, your games — talks to hardware only through the kernel.
+> #### 1. Kernel
+- The kernel is the hub/heart/core of Unix Operating System
 
-### What the kernel does
+> #### 2. Shell
+- Shell is an interface between a User/User application and Kernel
 
-1. **Memory management** — Allocates RAM to each running process. Ensures process A can't read process B's memory.
-2. **Process scheduling** — Decides which program gets CPU time and for how long — switches between processes thousands of times per second.
-3. **Device drivers** — Manages communication with hardware: keyboard, disk, network card, display.
-4. **System calls** — Provides a safe API for programs to request hardware services, e.g. `read()`, `write()`, `fork()`.
-5. **File system** — Abstracts disk storage into files and directories. Handles permissions and ownership.
+> #### 3. Programs / User-Application Program
+- Utility programs and applications are given by the user are handled in this layer
 
-### Kernel space vs User space
+### 2. Kernel
 
-The CPU has two protection rings:
+- The kernel is the hub/heart/core of Unix Operating System
+- It acts as an interface between the Hardware and Shell layer
+- It allocates the time and memory to the programs and handles the communications in response to the system calls
+- Most of the tasks such as memory management, task scheduling, file management, and so on are performed by Kernel
+- It manages external commands in Unix
+- Manages system resources, and enforce the security scheme
+- Manages the machine's memory and allocates it to each active/currently running process
+- Manages processor interrupts, and takes care of error handling
+- Schedules the work is done by the Central Processing Unit CPU and controls how processes are executed
+- Manages the creation and terminations of processes, and the communication between processes
+- Allocates and manages resources used by each user
+- Allows user processes, including shell commands to run Kernel instructions
 
-- **Kernel space** — full hardware access, high privilege
-- **User space** — restricted access, your apps live here
+### 3. Shell 
 
-### Kernel types
+- Shell is an interface between a User/User application and Kernel
+- Shell is the `command interpreter in Unix`, it supports a Command Line Interface, and also allows scripting
+- It serves as the interface between the User and the Kernel, helps to interact with Unix OS ie the Kernel (Shell takes input/command from a user and executes programs-run command)
+- The Shell is a Command Line Interface (CLI), As and when we type a command at the terminal, the shell interprets the command and calls the corresponding program
+- The Shell layer processes the user request
+- Shell uses standard syntax for all the commands
+- It provides a rich set of commands
+- Shell is an environment in which we can run our commands, programs and shell scripts
+- A file `"/etc/shells"` contains a list of all the Shells supported and available in the system
 
-- **Monolithic** — Linux, Unix: all services in one binary, fast
-- **Microkernel** — minuscule core, services as separate processes
-- **Hybrid** — Windows, macOS: mix of both
+**Different Shells available with most of the Unix variants/flavors: (Shell Types / Shell variants)**
+- Bourne shell (sh)
+- C shell (csh)
+- Korn shell (ksh)
+- TelShell (wish)
+- Bourne Again Shell (bash)
+
+### Kernel - Shell Layered Architecture
+
+**Technical Notes: Terminal Input Subsystem & Command Execution Architecture**
+
+In a UNIX-like architecture (including Cygwin), command-line input and execution are decoupled into two distinct kernel-level operations: **Character Echoing** and **Line Buffering**. This is managed via the Kernel's **TTY (Teletype) Subsystem** operating in **Canonical (Line-Disciplined) Mode**.
 
 ---
 
-## 3. What is the Shell?
+*Phase 1: Asynchronous Character Echoing (Per-Keystroke Loop)*
 
-> The shell is like a **translator**: you speak English commands (`ls -l`), the shell translates them into system calls, and the kernel executes them on the hardware.
+When a user interacts with the keyboard, the system relies on a low-level asynchronous feedback loop to display text before execution.
 
-### How the shell works
+```text
+[Keyboard Matrix] ──(IRQ)──> [CPU / ISR] ──> [TTY Buffer] ──> [Video Framebuffer]
+```
 
-1. **You type a command** — e.g. `ls -la /home`
-2. **Shell parses it** — splits command name from arguments, expands wildcards like `*.txt`
-3. **Shell finds the program** — searches `$PATH` directories to locate `/bin/ls`
-4. **Kernel executes it** — shell calls `fork()` + `exec()` system calls; kernel runs the program
-5. **Output returned to you** — results printed to your terminal via stdout
+- Technical Workflow:
+    - **Hardware Interrupt Generation:** Pressing a key (e.g., `a`) pulls down a voltage line on the motherboard, triggering a hardware -     Interrupt Request (IRQ) on the CPU.
+    - **Interrupt Service Routine (ISR):** The CPU suspends user-space execution and jumps to the kernel's keyboard driver ISR. The driver reads the raw hardware scancode from the I/O register.
+    - **Scancode Translation:** The kernel translates the hardware scancode into its corresponding ASCII/UTF-8 character code (e.g., `0x61` for `a`).
+    - **TTY Line Discipline Processing:** The character is passed into the Kernel's TTY Subsystem Because the terminal is in Canonical Mode the kernel holds the character inside a temporary kernel ring-buffer (the TTY input queue).
+    - **Character Echoing:** If the `ECHO` flag is enabled in the terminal configuration (`termios`), the TTY driver immediately writes the character code back out to the Standard Output (stdout) buffer.
+    - **Video Rendering:** The kernel routes this output to the active display/graphics driver, which modifies the pixel matrix in the video Frame Buffer rendering the character visually on the monitor.
 
-### Types of shells in Unix/Linux
+---
+
+*Phase 2: Synchronous Command Execution (Line Buffering & Handshake)*
+
+The terminal shell remains completely decoupled from individual keystrokes until a termination sequence is reached.
+
+```text
+[User Hits Enter] 
+       │
+       ▼
+ [Kernel Buffer Closes] ---> Locks the raw character array inside TTY queue
+       │
+       ▼
+ [Shell Wakes Up]       ---> unblocks read() system call; copies string to user space
+       │
+       ▼
+ [Shell Parses Text]    ---> Tokenizes string into argv[] array (Command vs Arguments)
+       │
+       ▼
+ [System Call Made]     ---> Executes fork() and execve() to load binary into memory
+```
+
+- Technical Workflow:
+    - **Delimiter Detection:** The process shifts when the user presses `Enter`. The keyboard sends the `\n` (Line Feed / Newline, `0x0A`) control character.
+    - **Buffer Flushing & Context Switch:** The TTY line discipline detects the newline delimiter, closes the current line buffer packet, and changes the state of the blocked shell process from Waiting (Sleeping to Runnable
+    - **The `read()` System Call Handshake:** The Shell (e.g., Bash) had previously issued a blocking `read()` system call on its Standard Input File Descriptor (`fd 0`). The kernel now satisfies this call, copying the complete character string from the Kernel Space TTY buffer into the User Space memory allocation of the Shell.
+    - **Command Tokenization (Parsing):** The shell performs lexical analysis on the string. It splits the text on whitespace delimiters into an argument vector array (`argv[]`):
+           * `argv[0]` = `"awk"` (The target executable binary)
+           * `argv[1]` = `"{print \$0}"` (The AWK execution script argument)
+           * `argv[2]` = `"test.txt"` (The target file parameter)
+    - **Process Creation & Execution (Fork-Exec Pattern):**
+           * `fork()`: The shell issues a `fork()` system call to clone itself, creating a child process with a new unique Process ID (PID).
+           * `execve()`: The child process invokes the `execve()` system call, passing `argv[]`. The kernel wipes the child's memory space, searches the system `PATH` env variables for the `awk` binary machine instructions on disk, copies those bytes into RAM, and points the CPU program counter to the `main()` entry function of the new program.
+
+---
+
+**Note 2.1 Architectural Design Rationale**
+
+*Why the Kernel Decouples Line input*
+
+- **Canonical Editing Support (Line Discipline):** By storing text inside a kernel-managed buffer before handing it over to the user application, the OS natively supports input correction. When a user presses Backspace (`0x7F` or `0x08`), the TTY subsystem catches it, deletes the preceding character from the kernel input queue, and moves the screen cursor back. 
+- **Efficiency:** If the system did not use line buffering, every single character typed would force the shell to execute evaluations instantly. Line buffering ensures user space applications only wake up and utilize CPU clock cycles when a fully complete command packet is ready for computational processing.
+
+
+**Note 3.1 How the shell works**
+
+1. *You type a command* — e.g. `ls -la /home`
+2. *Shell parses it* — splits command name from arguments, expands wildcards like `*.txt`
+3. *Shell finds the program* — searches `$PATH` directories to locate `/bin/ls`
+4. *Kernel executes it* — shell calls `fork()` + `exec()` system calls; kernel runs the program
+5. *Output returned to you* — results printed to your terminal via stdout
+
+-- **Types of shells in Unix/Linux**
 
 | Shell | Name | Key feature |
 |-------|------|-------------|
@@ -75,7 +160,7 @@ The CPU has two protection rings:
 | `ksh` | Korn shell | Combined sh + csh features |
 | `zsh` | Z shell | Modern features, default on macOS |
 
-### Shell is also a programming language
+-- **Shell is also a programming language**
 
 You can write scripts — files of shell commands — to automate tasks:
 
@@ -87,31 +172,66 @@ ls -l /home/$USER
 
 ---
 
-## 4. How Booting Works — Step by Step
+## 4. Boot Process Of Operating System
+---------------------
 
-> Booting is a **chain of trust**: each stage loads and hands control to the next. If any link breaks, the system won't start.
+**The standard boot process follows six critical, sequential phases:**
 
-1. **Power on → CPU wakes up** — You press the power button. The motherboard sends power to the CPU. The CPU's program counter jumps to a **fixed address in ROM** — the location of the firmware.
+1. *Power On and Initialization*
 
-2. **BIOS / UEFI firmware runs** — **BIOS** (older) or **UEFI** (modern) firmware initialises the CPU, RAM, and hardware devices. It runs a *Power-On Self Test (POST)* — checking that memory, GPU, and storage are present and working. The beeps you sometimes hear are POST codes.
+- Power Supply: Pressing the power button sends electricity from the Power Supply Unit (PSU) to the motherboard.
+- CPU Activation: The central processing unit starts up and seeks instructions. Because the RAM is empty, the CPU executes a hardcoded instruction that points directly to the system firmware.
 
-3. **Boot device selection** — BIOS/UEFI looks at the *boot order* (e.g. SSD first, then USB) and finds a bootable device — one that has a valid **Master Boot Record (MBR)** or **GPT partition table** with an EFI system partition.
+2. *BIOS / UEFI Firmware Execution*
 
-4. **Bootloader loads** — The firmware reads the first sector (512 bytes) of the disk — the MBR — and executes the tiny **bootloader** stored there. On Linux this is typically **GRUB**; on macOS it's `boot.efi`. The bootloader shows a menu and loads the OS kernel from disk into RAM.
+- Firmware Load: The computer runs its low-level built-in software, either traditional BIOS (Basic Input/Output System) or modern UEFI (Unified Extensible Firmware Interface).
+- POST (Power-On Self-Test): The firmware runs a diagnostic check to verify that essential hardware components—like the CPU, RAM, storage drives, and keyboard—are functional. If it detects failures, it halts and reports errors via screen alerts or audio beep codes.
 
-5. **Kernel initialises** — The kernel takes over. It *decompresses itself*, sets up CPU protection rings, initialises memory management (virtual memory, paging), and loads essential device drivers. At this point the kernel is running but there are still no user processes.
+3. *Finding the Bootloader*
 
-6. **Init system starts (PID 1)** — The kernel spawns the very first user process — **PID 1**. On modern Linux systems this is `systemd` (or `init` on older Unix). PID 1 is the ancestor of every other process on the system.
+- Boot Order: Once hardware checks pass, the firmware scans available storage devices (SSD, HDD, or USB) based on a preconfigured priority list.
+- Sector Search:
+- On Legacy BIOS systems, it targets the MBR (Master Boot Record) located in the first sector of the boot drive.
+- On UEFI systems, it targets the GPT (GUID Partition Table) and identifies the dedicated EFI System Partition.
+- Execution: The firmware finds a tiny program called the bootstrap loader and copies it into the RAM.
 
-7. **Services & daemons start** — Init starts system services in parallel: networking, logging (`syslogd`), cron, SSH daemon, display manager, etc. Each is a child process of PID 1.
+4. *Loading the Bootloader*
 
-8. **Login prompt / GUI** — Finally, a **getty** process opens a terminal and displays the login prompt — or the display manager launches the graphical login screen. Boot complete.
+- Intermediate Step: The small bootstrap program initializes and fetches a more advanced, primary bootloader (such as GRUB for Linux or Windows Boot Manager for Windows).
+- OS Selection: If multiple operating systems are installed on different disk partitions (dual booting), the bootloader pauses to display a menu allowing you to choose your desired OS.
 
-### Quick visual summary
+5. *Kernel and Driver Initialization*
 
-```
-Power on → BIOS/UEFI → POST → Bootloader → Kernel → PID 1 (init) → Services → Login
-```
+- Kernel Load: The bootloader locates the core component of the operating system—the kernel—and transfers it to the RAM. Control of the machine is officially handed over to the OS.
+- Hardware Drivers: The kernel takes control of the CPU and memory. It then mounts necessary filesystems and loads essential device drivers so the OS can cleanly communicate with system hardware.
+
+6. *Starting Core Services and User Authentication*
+
+- Background Daemons: The kernel initiates the root system process (like systemd in Linux) to launch vital background services. These include network connections, security modules, and print managers.
+- User Login: Finally, the system initiates the graphical interface, presenting the desktop environment or a user authentication screen. Once logged in, the system is fully prepared for use.
+
+------------------------------
+**Note 4.1: Key Variations: Cold Boot vs. Warm Boot**
+
+- Cold Booting (Hard Boot): Occurs when you power on a device from a completely turned-off state. The machine performs the full routine, including mandatory POST diagnostics and total hardware initialization.
+- Warm Booting (Soft Boot): Occurs when you trigger a software restart without cutting the electrical power supply. It speeds up the loading process by bypassing structural hardware checks and some POST sequences.
+
+**Note 4.2: How does POST produce screen alerts or audio alerts if the OS has not been loaded yet?**
+
+The Power-On Self-Test (POST) can communicate without an operating system because it relies entirely on firmware and low-level hardware standards that are hardcoded into your computer's components.Before the OS ever loads, the motherboard's BIOS/UEFI acts as a temporary, mini-operating system.
+
+1. *How POST Accesses Sound (Beep Codes)*
+
+- Direct Hardware Control: The motherboard features a tiny, dedicated physical speaker (the piezo speaker) or a buzzer wired directly to the chipset.
+- No Drivers Needed: The BIOS/UEFI contains primitive assembly language instructions to send electrical pulses directly to this buzzer at specific frequencies.
+- The Result: If the RAM or video card fails to initialize, the firmware triggers specific patterns of short and long electrical pulses (e.g., one long and two short beeps) to tell you exactly what hardware failed.
+
+2. *How POST Accesses the Screen (Display)*
+
+- VGA Legacy Standards: Long before modern graphics drivers load, all video cards (Nvidia, AMD, or Intel integrated graphics) are hardcoded to support an ancient, universal standard called VGA (Video Graphics Array) mode.
+- Video BIOS (VBIOS): The graphics card has its own tiny onboard firmware chip. During the first split-second of booting, the main motherboard firmware locates and executes this Video BIOS.
+- Basic Text Output: The VBIOS initializes the graphics processor just enough to accept basic, unaccelerated text and simple graphics. It bypasses complex display pipelines and pipes basic pixels straight to your monitor via HDMI, DisplayPort, or VGA.
+
 
 ---
 
