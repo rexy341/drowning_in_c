@@ -14,4 +14,4 @@ int main()
 }
 ```
 
-![My Code Output](images/backgroundprocess.png)
+![My Code Output](backgroundprocess.png)
